@@ -19,8 +19,7 @@ jobs:
       - run: pip install requests
       - name: Ejecutar bot
         env:
-          WA_PHONE: ${{ secrets.WA_PHONE }}
-          WA_APIKEY: ${{ secrets.WA_APIKEY }}
+          TG_USER: ${{ secrets.TG_USER }}
         run: python check.py
       - name: Guardar estado
         run: |
