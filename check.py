@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+import urllib.parse
 
 import requests
 
@@ -8,19 +9,33 @@ BASE = "https://www.maquillajetrendyshop.com"
 SEARCH_TERM = "calendario adviento"
 KEYWORDS = ["adviento"]  # palabra que debe estar en el nombre
 STATE = pathlib.Path("seen.json")
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+    "Accept": "application/json",
+}
 
 TG_USER = os.environ["TG_USER"]  # tu usuario de Telegram, ej: @miusuario
 
 
 def buscar():
-    r = requests.get(
-        f"{BASE}/api/catalog_system/pub/products/search",
-        params={"ft": SEARCH_TERM},
-        headers={"User-Agent": "Mozilla/5.0"},
-        timeout=30,
-    )
-    r.raise_for_status()
-    return r.json()
+    q = urllib.parse.quote(SEARCH_TERM)
+    urls = [
+        f"{BASE}/api/io/_v/api/intelligent-search/product_search/?query={q}&locale=es-CO",
+        f"{BASE}/api/catalog_system/pub/products/search/{q}?map=ft",
+        f"{BASE}/api/catalog_system/pub/products/search?ft={q}",
+    ]
+    for url in urls:
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=30)
+            print("Probando:", url, "->", r.status_code)
+            if r.status_code != 200:
+                print("   Respuesta:", r.text[:200])
+                continue
+            data = r.json()
+            return data["products"] if isinstance(data, dict) else data
+        except Exception as e:
+            print("   Fallo:", e)
+    raise SystemExit("Ninguna forma de consultar la tienda funcion\u00f3")
 
 
 def disponible(prod):
