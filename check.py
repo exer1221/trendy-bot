@@ -9,8 +9,7 @@ SEARCH_TERM = "calendario adviento"
 KEYWORDS = ["adviento"]  # palabra que debe estar en el nombre
 STATE = pathlib.Path("seen.json")
 
-PHONE = os.environ["WA_PHONE"]    # ej: +573001234567
-APIKEY = os.environ["WA_APIKEY"]  # la que te dio CallMeBot
+TG_USER = os.environ["TG_USER"]  # tu usuario de Telegram, ej: @miusuario
 
 
 def buscar():
@@ -34,11 +33,11 @@ def disponible(prod):
 
 def avisar(texto):
     r = requests.get(
-        "https://api.callmebot.com/whatsapp.php",
-        params={"phone": PHONE, "text": texto, "apikey": APIKEY},
-        timeout=30,
+        "https://api.callmebot.com/start.php",
+        params={"user": TG_USER, "text": texto, "lang": "es-US-Standard-A", "rpt": 2},
+        timeout=60,
     )
-    print("WhatsApp:", r.status_code, r.text[:100])
+    print("Llamada:", r.status_code, r.text[:150])
 
 
 def main():
@@ -53,8 +52,8 @@ def main():
         nuevos.append(p)
 
     for p in nuevos:
-        link = f"{BASE}/{p['linkText']}/p"
-        avisar(f"🎄 ¡Ya subió! {p['productName']}\n{link}")
+        print("Encontrado:", p["productName"], f"{BASE}/{p['linkText']}/p")
+        avisar("Atención. Ya subió el calendario de adviento en la tienda Trendy. Entra ahora a comprarlo.")
         seen.add(p["productId"])
 
     STATE.write_text(json.dumps(sorted(seen)))
